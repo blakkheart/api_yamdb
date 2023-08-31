@@ -11,6 +11,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# Constant for "score".
+SCORE_RANGE = range(1, 11)
 
 # Application definition
 

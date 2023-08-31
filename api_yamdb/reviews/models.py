@@ -8,8 +8,7 @@ User = get_user_model()
 
 class Review(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews'
-    )
+        User, on_delete=models.CASCADE, related_name='reviews')
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
     text = models.TextField()
     title = models.ForeignKey(Title, on_delete=models.CASCADE,
@@ -19,9 +18,9 @@ class Review(models.Model):
                                 help_text='Введите целое число от 1 до 10')
 
     class Meta:
-        ordering = ('pub_date', )
         verbose_name = 'отзыв'
         verbose_name_plural = 'Отзывы'
+        ordering = ('pub_date', )
         constraints = (
             models.UniqueConstraint(
                 name='unique_review',
@@ -30,7 +29,7 @@ class Review(models.Model):
         )
 
     def __str__(self):
-        return f'{self.title.name} - {self.score}.'
+        return f'{self.title.name}: {self.score}.'
 
 
 class Comment(models.Model):
@@ -47,4 +46,4 @@ class Comment(models.Model):
         ordering = ('pub_date', )
 
     def __str__(self):
-        return self.text[:200]
+        return self.text[:50]
