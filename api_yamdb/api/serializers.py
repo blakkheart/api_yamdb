@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from reviews.models import Comment, Review
+from reviews.models import Comment, Review, Category, Genre, Title
 
 
 User = get_user_model()
@@ -140,3 +140,26 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Используйте оценку от 1 до 10!')
         return value
+
+
+class CategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        exclude = ['id']
+        model = Category
+
+
+class GenreSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        exclude = ['id']
+        model = Genre
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
+
+    class Meta:
+        fields = '__all__'
+        model = Title

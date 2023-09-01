@@ -17,8 +17,11 @@ from api.serializers import (
     UserEditSerializer,
     CommentSerializer,
     ReviewSerializer,
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializer
 )
-from reviews.models import Review
+from reviews.models import (Review, Category, Genre, Title)
 
 
 User = get_user_model()
@@ -121,3 +124,18 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer

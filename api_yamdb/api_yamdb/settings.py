@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'user.apps.UserConfig',
     # 3-rd party
     'rest_framework',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
