@@ -9,7 +9,7 @@ from api.views import (CreateJWTTokenView, CreateUserView,
 router_v1 = DefaultRouter()
 router_v1.register(r'users', UserViewSet)
 router_v1.register(
-    r'titles/(?P<title_id>\d+)/reviews/(?P<title_id>\d+)/comments',
+    r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
     CommentViewSet, basename='comment')
 router_v1.register(r'titles/(?P<title_id>\d+)/reviews',
                    ReviewViewSet, basename='review')
