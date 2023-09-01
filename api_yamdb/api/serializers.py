@@ -1,18 +1,18 @@
 from rest_framework import serializers
-from reviews.models import Category,  Genre, Title
+from reviews.models import Category, Genre, Title
 
 
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
-        exclude = ['id']
+        fields = (Category, Genre, Title)
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        exclude = ['id']
+        fields = (Category, Genre, Title)
         model = Genre
 
 
@@ -21,5 +21,5 @@ class TitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True, read_only=True)
 
     class Meta:
-        fields = '__all__'
+        fields = (Category, Genre, Title)
         model = Title
