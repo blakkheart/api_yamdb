@@ -162,4 +162,15 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = '__all__'
-        model = Title
+        validators = (
+            serializers.UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=('author', 'title'),
+                message='Повторная отпрвка невозможна.'
+            ), )
+
+    def validate_score(self, value):
+        if value not in settings.SCORE_RANGE:
+            raise serializers.ValidationError(
+                'Используйте оценку от 1 до 10!')
+        return value
