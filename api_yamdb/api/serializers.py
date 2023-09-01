@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from reviews.models import Comment, Review, Category, Genre, Title
+from reviews.models import (Comment, Review, Category, Genre, Title)
 
 
 User = get_user_model()
@@ -145,15 +145,15 @@ class ReviewSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
-        exclude = ['id']
         model = Category
+        fields = ('name', 'slug')
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        exclude = ['id']
         model = Genre
+        fields = ('name', 'slug')
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -161,16 +161,5 @@ class TitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True, read_only=True)
 
     class Meta:
-        fields = '__all__'
-        validators = (
-            serializers.UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('author', 'title'),
-                message='Повторная отпрвка невозможна.'
-            ), )
-
-    def validate_score(self, value):
-        if value not in settings.SCORE_RANGE:
-            raise serializers.ValidationError(
-                'Используйте оценку от 1 до 10!')
-        return value
+        model = Title
+        fields = ('name', 'year', 'category', 'genre', 'description')

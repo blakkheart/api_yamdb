@@ -20,9 +20,9 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=100, verbose_name='Название',
+    name = models.CharField(max_length=256, verbose_name='Название',
                             help_text='Выберите жанр')
-    slug = models.SlugField(max_length=20, unique=True, verbose_name='Слаг')
+    slug = models.SlugField(max_length=50, unique=True, verbose_name='Слаг')
 
     class Meta:
         verbose_name = 'Жанр'
@@ -33,9 +33,9 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField(max_length=100, verbose_name='Название',
+    name = models.CharField(max_length=256, verbose_name='Название',
                             help_text='Выберите название произведения')
-    year = models.IntegerField(verbose_name='Год', null=True, blank=True)
+    year = models.IntegerField(verbose_name='Год')
     category = models.ForeignKey(Category, verbose_name='Категория',
                                  on_delete=models.SET_NULL, null=True,
                                  blank=True, related_name='titles')
