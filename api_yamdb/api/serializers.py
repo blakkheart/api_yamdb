@@ -109,37 +109,35 @@ class UserAdminEditSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        read_only=True, slug_field='author'
+        read_only=True, slug_field='username'
     )
 
     class Meta:
         model = Comment
-        fields = '__all__'
+        fields = ('id', 'text', 'author', 'pub_date')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
-    title = serializers.SlugRelatedField(
-        read_only=True, slug_field='title'
-    )
 
     class Meta:
         model = Review
-        fields = '__all__'
-        validators = (
-            serializers.UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('author', 'title'),
-                message='Повторная отпрвка невозможна.'
-            ), )
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
     def validate_score(self, value):
         if value not in settings.SCORE_RANGE:
             raise serializers.ValidationError(
                 'Используйте оценку от 1 до 10!')
         return value
+
+    def validate(self, data):
+        if Review.objects.filter(
+            author=self.context['request'].user, title=self.context['view'].kwargs['title_id']
+        ):
+            raise serializers.ValidationError('Cannot review same title twice')
+        return data
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -157,9 +155,24 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(read_only=True)
-    genre = GenreSerializer(many=True, read_only=True)
+    category = serializers.SlugRelatedField(
+        slug_field='slug', read_only=True)
+    genre = serializers.SlugRelatedField(
+        slug_field='slug', many=True, read_only=True)
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
-        fields = ('name', 'year', 'category', 'genre', 'description')
+        fields = ('id', 'name', 'year', 'rating',
+                  'description', 'genre', 'category')
+
+
+class GetTitleSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
+    genre = GenreSerializer(read_only=True, many=True)
+    rating = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Title
+        fields = ('id', 'name', 'year', 'rating',
+                  'description', 'genre', 'category')

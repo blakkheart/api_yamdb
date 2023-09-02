@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, permissions, status, viewsets
@@ -11,7 +12,8 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api.filters import TitleFilter
-from api.permissions import IsAdminOrSuperUser, IsAdminOrSuperUserOrAuthor
+from api.permissions import (
+    IsAdminOrSuperUser, IsAdminModeratorSuperUserAuthorOrReadOnly, IsAdminOrReadOnly)
 from api.serializers import (
     TokenSerializer,
     UserAdminEditSerializer,
@@ -21,7 +23,8 @@ from api.serializers import (
     ReviewSerializer,
     CategorySerializer,
     GenreSerializer,
-    TitleSerializer
+    TitleSerializer,
+    GetTitleSerializer,
 )
 from reviews.models import (Review, Category, Genre, Title)
 
@@ -102,13 +105,14 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (IsAdminOrSuperUserOrAuthor, )
+    permission_classes = (IsAdminModeratorSuperUserAuthorOrReadOnly, )
+    http_method_names = ['get', 'post', 'delete', 'patch']
 
     def get_review(self):
         return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
 
     def get_queryset(self):
-        return self.get_review().comments
+        return self.get_review().comments.select_related('author')
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, review=self.get_review())
@@ -116,13 +120,14 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (IsAdminOrSuperUserOrAuthor, )
+    permission_classes = (IsAdminModeratorSuperUserAuthorOrReadOnly, )
+    http_method_names = ['get', 'post', 'delete', 'patch']
 
     def get_title(self):
         return get_object_or_404(Title, pk=self.kwargs.get('title_id'))
 
     def get_queryset(self):
-        return self.get_title().reviews
+        return self.get_title().reviews.select_related('author')
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
@@ -131,18 +136,33 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = (IsAdminOrReadOnly, )
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    permission_classes = (IsAdminOrReadOnly, )
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+    queryset = Title.objects.prefetch_related(
+        'genre', 'category').annotate(rating=Avg('reviews__score'))
+    # serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend, )
     filterset_class = TitleFilter
+    permission_classes = (IsAdminOrReadOnly, )
+    pagination_class = PageNumberPagination
+    http_method_names = ['get', 'post', 'delete', 'patch']
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return GetTitleSerializer
+        return TitleSerializer
 
     def perform_create(self, serializer):
         category = get_object_or_404(
@@ -152,6 +172,16 @@ class TitleViewSet(viewsets.ModelViewSet):
             slug__in=self.request.data.getlist('genre')
         )
         serializer.save(category=category, genre=genre)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def perform_update(self, serializer):
-        self.perform_create(serializer)
+        category = get_object_or_404(
+            Category, slug=self.request.data.get('category')
+        )
+        genre = Genre.objects.filter(
+            slug__in=self.request.data.getlist('genre')
+        )
+        serializer.save(category=category, genre=genre, partial=True)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
