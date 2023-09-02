@@ -133,10 +133,12 @@ class ReviewSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-        if Review.objects.filter(
-            author=self.context['request'].user, title=self.context['view'].kwargs['title_id']
-        ):
-            raise serializers.ValidationError('Cannot review same title twice')
+        if self.context['request'].method == 'POST':
+            if Review.objects.filter(
+                author=self.context['request'].user, title=self.context['view'].kwargs['title_id']
+            ):
+                raise serializers.ValidationError(
+                    'Cannot review same title twice')
         return data
 
 
