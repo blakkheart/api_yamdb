@@ -9,10 +9,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# Constant for "score".
 SCORE_RANGE = range(1, 11)
 
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',

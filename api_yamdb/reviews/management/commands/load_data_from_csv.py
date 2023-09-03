@@ -1,11 +1,10 @@
 import csv
 
-from django.core.management import BaseCommand
-from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.core.management import BaseCommand
 
-
-from reviews.models import Category, Genre, Comment, Review, Title, GenreTitle
+from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 
 User = get_user_model()
 
@@ -32,11 +31,16 @@ csv_models_dict = {
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options) -> str | None:
-        for csv_file in list_of_csv:
-            print(f'loading {csv_file} ', end='')
+    """CSV parser that imports data to models.
+    Django command that allows to parse csv filedir
+        and import data to each model.
+    """
+
+    def handle(self, *args, **options) -> None:
+        for csv_file_name in list_of_csv:
+            print(f'loading {csv_file_name} ', end='')
             with open(
-                str(settings.CSV_DATA_DIR) + '/' + csv_file + '.csv',
+                str(settings.CSV_DATA_DIR) + '/' + csv_file_name + '.csv',
                 encoding='utf-8',
             ) as file:
                 for model_data in csv.DictReader(file):
@@ -45,8 +49,7 @@ class Command(BaseCommand):
                             model_data[key] = csv_models_dict[key].objects.get(
                                 pk=value
                             )
-                    model = csv_models_dict.get(csv_file)(**model_data)
+                    model = csv_models_dict.get(csv_file_name)(**model_data)
                     model.save()
                     print('.', end='')
             print('.. DONE')
-        return

@@ -4,6 +4,19 @@ from django.db import models
 
 
 class CustomUser(AbstractUser):
+    """CustomUser model.
+    Inherited from AbstractUser, redefining default user model.
+    Includes username field (str, max length=150, unique=True),
+        email field (str, max length=254, unique=True),
+        first_name field (str, max length=254, could be blank and null),
+        last_name field (str, max length=254, could be blank and null),
+        bio field (str, could be blank and null),
+        role field (str, choise between user,
+            moderator and admin, default=user).
+    Has is_admin property, checks, if user.role == admin,
+        is_moderator property, checks, if user.role == moderator.
+    """
+
     class Role(models.TextChoices):
         USER = 'user', 'User'
         ADMIN = 'admin', 'Admin'

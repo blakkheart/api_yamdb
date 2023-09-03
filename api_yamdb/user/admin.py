@@ -1,7 +1,24 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
+
 from user.models import CustomUser
 
-UserAdmin.fieldsets += (('Extra Fields', {'fields': ('bio', 'role',)}),)
 
-admin.site.register(CustomUser, UserAdmin)
+@admin.register(CustomUser)
+class CustomUserAdmin(admin.ModelAdmin):
+    """Register User model in Admin panel with all fields."""
+
+    fieldsets = (
+        (
+            'Standard info',
+            {
+                'fields': (
+                    'email',
+                    'username',
+                    'password',
+                    'first_name',
+                    'last_name',
+                )
+            },
+        ),
+        ('Extra Fields', {'fields': ('bio', 'role',)}),
+    )
