@@ -1,8 +1,9 @@
+![Image alt](https://github.com/blakkheart/api_yamdb/raw/master/api_yamdb/static/logo1.png)
 ## <p align="center"> :trophy:  Совместный проект 'API_Yamdb' :trophy: </p>
 
 ### В разработке проекта участвовали: <br>
 
-#### :sunglasses: *Первый разработчик: Влад - https://github.com/blakkheart* <br>
+#### :sunglasses: *Тимлид - Первый разработчик: Влад - https://github.com/blakkheart* <br>
 #### :sunglasses: *Второй разработчик: Ринат - https://github.com/Rinat-Khusainov*  <br>
 #### :sunglasses: *Третий разработчик: Ден -  https://github.com/Den4u*  <br>
 
