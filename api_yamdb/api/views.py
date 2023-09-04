@@ -12,11 +12,12 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api.filters import TitleFilter
-from api.mixins import CreateListDestroyMixin
+from api.views_mixins import CreateListDestroyMixin
 from api.permissions import (
-    IsAdminModeratorSuperUserAuthorOrReadOnly,
     IsAdminOrReadOnly,
-    IsAdminOrSuperUser,
+    IsAdmin,
+    IsModerator,
+    IsAuthor,
 )
 from api.serializers import (
     CategorySerializer,
@@ -37,12 +38,6 @@ User = get_user_model()
 
 
 class CreateUserView(CreateAPIView):
-    """ViewSet allows only POST method.
-    Allows any user to register providing {username} and {email}.
-    Create {User} model and sending an email to {email} adress with
-        generated {token}.
-    """
-
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
     permission_classes = (permissions.AllowAny,)
@@ -63,12 +58,6 @@ class CreateUserView(CreateAPIView):
 
 
 class CreateJWTTokenView(CreateAPIView):
-    """ViewSet allows only POST method.
-    Allows any user to get access token
-        providing {username} and {cofirmation_token}.
-    Create {AccessToken} for particular user.
-    """
-
     serializer_class = TokenSerializer
     permission_classes = (permissions.AllowAny,)
 
@@ -89,18 +78,9 @@ class CreateJWTTokenView(CreateAPIView):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """ViewSet that allows admin or superuser to register users
-        and allows authenticated users to change
-        their profile with PATCH method to users/me/ adress.
-    PUT method is restricted.
-    Allows to filter results via {username} field.
-    Redefines lookup field with {username} field.
-    Contains {PageNumberPagination}.
-    """
-
     queryset = User.objects.all()
     serializer_class = UserAdminEditSerializer
-    permission_classes = (IsAdminOrSuperUser,)
+    permission_classes = (IsAdmin,)
     filter_backends = (filters.SearchFilter,)
     lookup_field = 'username'
     search_fields = ('username',)
@@ -122,23 +102,17 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        elif request.method == 'PATCH':
-            serializer = self.get_serializer(
-                user, data=request.data, partial=True,
-            )
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(
+            user, data=request.data, partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    """ViewSet that allows to create, delete, edit and view comments.
-    PUT method is restricted.
-    Permission class {IsAdminModeratorSuperUserAuthorOrReadOnly}
-    """
-
     serializer_class = CommentSerializer
-    permission_classes = (IsAdminModeratorSuperUserAuthorOrReadOnly,)
+    permission_classes = (IsAdmin | IsModerator | IsAuthor,)
     http_method_names = ['get', 'post', 'delete', 'patch']
 
     def get_review(self):
@@ -152,13 +126,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    """ViewSet that allows to create, delete, edit and view reviews.
-    PUT method is restricted.
-    Permission class {IsAdminModeratorSuperUserAuthorOrReadOnly}
-    """
-
     serializer_class = ReviewSerializer
-    permission_classes = (IsAdminModeratorSuperUserAuthorOrReadOnly,)
+    permission_classes = (IsAdmin | IsModerator | IsAuthor,)
     http_method_names = ['get', 'post', 'delete', 'patch']
 
     def get_title(self):
@@ -172,37 +141,21 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(CreateListDestroyMixin):
-    """ViewSet that allows to view categories.
-    Allows admin to create, edit and delete categories.
-    Allows to filter results via {name} field.
-    Redefines lookup field with {slug} field.
-    """
-
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
 class GenreViewSet(CreateListDestroyMixin):
-    """ViewSet that allows to view genres.
-    Allows admin to create, edit and delete genres.
-    Allows to filter results via {name} field.
-    Redefines lookup field with {slug} field.
-    """
-
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    """ViewSet that allows to view titles.
-    Allows admin to create, edit and delete titles.
-    PUT method is restricted.
-    Allows to filter results via {TitleFilter} FilterSet.
-    Contains {PageNumberPagination}.
-    """
-
-    queryset = Title.objects.prefetch_related('genre', 'category').annotate(
-        rating=Avg('reviews__score')
+    queryset = (
+        Title
+        .objects
+        .prefetch_related('genre', 'category')
+        .annotate(rating=Avg('reviews__score'))
     )
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter

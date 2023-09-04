@@ -1,31 +1,8 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from rest_framework.filters import SearchFilter
-from rest_framework.mixins import (
-    CreateModelMixin,
-    DestroyModelMixin,
-    ListModelMixin,
-)
-from rest_framework.viewsets import GenericViewSet
 
-from api.permissions import IsAdminOrReadOnly
 
 User = get_user_model()
-
-
-class CreateListDestroyMixin(
-    CreateModelMixin, DestroyModelMixin, ListModelMixin, GenericViewSet
-):
-    """Mixin including Create, Destroy and List methods.
-    Has permission class checks if {request.user} is admin or read only.
-    Has search option with {name} field.
-    Set lookup field to {slug} field.
-    """
-
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
 
 
 class UserMixinSerializer(serializers.ModelSerializer):

@@ -1,12 +1,11 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 
-from user.models import CustomUser
+User = get_user_model()
 
 
-@admin.register(CustomUser)
+@admin.register(User)
 class CustomUserAdmin(admin.ModelAdmin):
-    """Register User model in Admin panel with all fields."""
-
     fieldsets = (
         (
             'Standard info',
