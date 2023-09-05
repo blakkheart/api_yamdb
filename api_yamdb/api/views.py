@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -31,6 +30,7 @@ from api.serializers import (
     UserCreateSerializer,
     UserEditSerializer,
 )
+from api.utils import send_email_to_user
 from reviews.models import Category, Genre, Review, Title
 
 
@@ -47,13 +47,7 @@ class CreateUserView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user, _ = User.objects.get_or_create(**serializer.validated_data)
         token = default_token_generator.make_token(user)
-        send_mail(
-            subject='Confirm your registration on YaMDB',
-            message=f'Your confirmation code: {token}',
-            from_email='yamdb_registration@yandex.ru',
-            recipient_list=[user.email],
-            fail_silently=True,
-        )
+        send_email_to_user(email=user.email, code=token)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -88,7 +82,7 @@ class UserViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'delete', 'patch']
 
     @action(
-        methods=['get', 'patch'],
+        methods=['get'],
         permission_classes=(permissions.IsAuthenticated,),
         detail=False,
         serializer_class=UserEditSerializer,
@@ -102,6 +96,10 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @me.mapping.patch
+    def patch_me(self, request):
+        user = request.user
         serializer = self.get_serializer(
             user, data=request.data, partial=True,
         )
