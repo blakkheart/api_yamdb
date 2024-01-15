@@ -3,9 +3,9 @@
 
 ### В разработке проекта участвовали: <br>
 
-#### :sunglasses: *Тимлид - Первый разработчик: Влад - https://github.com/blakkheart* <br>
-#### :sunglasses: *Второй разработчик: Ринат - https://github.com/Rinat-Khusainov*  <br>
-#### :sunglasses: *Третий разработчик: Ден -  https://github.com/Den4u*  <br>
+#### :sunglasses: *Тимлид - Первый разработчик: [Влад](https://github.com/blakkheart)* <br>
+#### :sunglasses: *Второй разработчик: [Ринат](https://github.com/Rinat-Khusainov)*  <br>
+#### :sunglasses: *Третий разработчик: [Ден](https://github.com/Den4u)*  <br>
 
 
 ### Выполненные задачи: 
